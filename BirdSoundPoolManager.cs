@@ -8,20 +8,34 @@ public class BirdSoundPoolManager : MonoBehaviour
     public static BirdSoundPoolManager Instance { get; private set; }
 
     public int poolSize = 10;
-    public EventReference fmodEvent;
-    private Queue<EventInstance> soundPool;
+
+    [System.Serializable]
+    public class SpeciesSound
+    {
+        public string speciesName;
+        public EventReference fmodEvent;
+    }
+
+    public List<SpeciesSound> speciesSounds; // List of species and their corresponding FMOD events
+
+    private Dictionary<string, Queue<EventInstance>> soundPools; // Dictionary of sound pools for each species
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            soundPool = new Queue<EventInstance>();
+            soundPools = new Dictionary<string, Queue<EventInstance>>();
 
-            for (int i = 0; i < poolSize; i++)
+            foreach (var speciesSound in speciesSounds)
             {
-                EventInstance soundInstance = RuntimeManager.CreateInstance(fmodEvent);
-                soundPool.Enqueue(soundInstance);
+                Queue<EventInstance> soundPool = new Queue<EventInstance>();
+                for (int i = 0; i < poolSize; i++)
+                {
+                    EventInstance soundInstance = RuntimeManager.CreateInstance(speciesSound.fmodEvent);
+                    soundPool.Enqueue(soundInstance);
+                }
+                soundPools[speciesSound.speciesName] = soundPool;
             }
         }
         else
@@ -30,32 +44,33 @@ public class BirdSoundPoolManager : MonoBehaviour
         }
     }
 
-    public EventInstance GetSound()
+    public EventInstance GetSound(string species)
     {
-        if (soundPool.Count > 0)
+        if (soundPools[species].Count > 0)
         {
-            return soundPool.Dequeue();
+            return soundPools[species].Dequeue();
         }
         else
         {
-            // If pool is empty, create a new sound instance
-            EventInstance soundInstance = RuntimeManager.CreateInstance(fmodEvent);
-            return soundInstance;
+            Debug.LogWarning("Sound pool for species " + species + " is empty. Waiting for a sound to be returned to the pool.");
+            return null; // Return null if the pool is empty
         }
     }
 
-    public void ReturnSound(EventInstance soundInstance)
+    public void ReturnSound(string species, EventInstance soundInstance)
     {
-        soundPool.Enqueue(soundInstance);
+        soundPools[species].Enqueue(soundInstance);
     }
 
     private void OnDestroy()
     {
-        while (soundPool.Count > 0)
+        foreach (var soundPool in soundPools.Values)
         {
-            EventInstance soundInstance = soundPool.Dequeue();
-            soundInstance.release();
+            while (soundPool.Count > 0)
+            {
+                EventInstance soundInstance = soundPool.Dequeue();
+                soundInstance.release();
+            }
         }
     }
-
 }
