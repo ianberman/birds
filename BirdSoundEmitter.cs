@@ -19,6 +19,8 @@ public class BirdSoundEmitter : MonoBehaviour
     private BirdSoundManager birdSoundManager;
     private List<BirdSoundManager.SpeciesNames> availableSpecies;
 
+    private string currentSpeciesName; // Store the species name as a string
+
     [SerializeField]
     private float minDelay = 0f; // Minimum delay between sound clips
     [SerializeField]
@@ -130,6 +132,9 @@ public class BirdSoundEmitter : MonoBehaviour
     // Play a bird sound for the given species
     private IEnumerator PlayBirdSound(BirdSoundManager.SpeciesNames species)
     {
+        currentSpeciesName = species.ToString(); // Store the species name when a sound is played
+        birdSoundInstance = BirdSoundPoolManager.Instance.GetSound(currentSpeciesName);
+
         if (birdSoundManager.TryGetFMODEventForSpecies(species, out EventReference fmodEvent))
         {
             if (birdSoundInstance.isValid())
@@ -268,8 +273,7 @@ public class BirdSoundEmitter : MonoBehaviour
             if (instanceToEmitter.TryGetValue(instancePtr, out BirdSoundEmitter emitter))
             {
                 emitter.isEligibleToPlay = true;
-                // Return the sound instance to the pool
-                BirdSoundPoolManager.Instance.ReturnSound(emitter.birdSoundInstance);
+                BirdSoundPoolManager.Instance.ReturnSound(emitter.currentSpeciesName, emitter.birdSoundInstance); // Use the stored species name
             }
         }
         return FMOD.RESULT.OK;
