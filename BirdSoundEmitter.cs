@@ -148,12 +148,13 @@ public class BirdSoundEmitter : MonoBehaviour
                     birdSoundInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
                     instanceToEmitter.Remove(birdSoundInstance.handle); // Remove from dictionary
                     // Return the sound instance to the pool instead of releasing it
-                    BirdSoundPoolManager.Instance.ReturnSound(birdSoundInstance);
+                    BirdSoundPoolManager.Instance.ReturnSound(currentSpecies, birdSoundInstance);
+
                 }
             }
 
             // Get a sound instance from the pool instead of creating a new one
-            birdSoundInstance = BirdSoundPoolManager.Instance.GetSound();
+            birdSoundInstance = BirdSoundPoolManager.Instance.GetSound(currentSpecies);
             instanceToEmitter[birdSoundInstance.handle] = this;
 
             // Set 3D attributes
@@ -263,7 +264,7 @@ public class BirdSoundEmitter : MonoBehaviour
             {
                 emitter.isEligibleToPlay = true;
                 // Return the sound instance to the pool
-                BirdSoundPoolManager.Instance.ReturnSound(emitter.birdSoundInstance);
+                BirdSoundPoolManager.Instance.ReturnSound(currentSpecies, birdSoundInstance);
             }
         }
         return FMOD.RESULT.OK;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using FMOD.Studio;
 using FMODUnity;
@@ -6,22 +7,30 @@ using UnityEngine;
 public class BirdSoundPoolManager : MonoBehaviour
 {
     public static BirdSoundPoolManager Instance { get; private set; }
-
     public int poolSize = 10;
-    public EventReference fmodEvent;
-    private Queue<EventInstance> soundPool;
+    public Dictionary<BirdSoundManager.SpeciesNames, EventReference> fmodEvents;
+    private Dictionary<BirdSoundManager.SpeciesNames, Queue<EventInstance>> soundPools;
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            soundPool = new Queue<EventInstance>();
-
-            for (int i = 0; i < poolSize; i++)
+            fmodEvents = new Dictionary<BirdSoundManager.SpeciesNames, EventReference>();
+            soundPools = new Dictionary<BirdSoundManager.SpeciesNames, Queue<EventInstance>>();
+            foreach (BirdSoundManager.SpeciesNames species in Enum.GetValues(typeof(BirdSoundManager.SpeciesNames)))
             {
-                EventInstance soundInstance = RuntimeManager.CreateInstance(fmodEvent);
-                soundPool.Enqueue(soundInstance);
+                if (BirdSoundManager.Instance.TryGetFMODEventForSpecies(species, out EventReference fmodEvent))
+                {
+                    fmodEvents[species] = fmodEvent;
+                    Queue<EventInstance> soundPool = new Queue<EventInstance>();
+                    for (int i = 0; i < poolSize; i++)
+                    {
+                        EventInstance soundInstance = RuntimeManager.CreateInstance(fmodEvent);
+                        soundPool.Enqueue(soundInstance);
+                    }
+                    soundPools[species] = soundPool;
+                }
             }
         }
         else
@@ -30,32 +39,36 @@ public class BirdSoundPoolManager : MonoBehaviour
         }
     }
 
-    public EventInstance GetSound()
+    public EventInstance GetSound(BirdSoundManager.SpeciesNames species)
     {
-        if (soundPool.Count > 0)
+        if (soundPools[species].Count > 0)
         {
-            return soundPool.Dequeue();
+            return soundPools[species].Dequeue();
         }
         else
         {
-            // If pool is empty, create a new sound instance
-            EventInstance soundInstance = RuntimeManager.CreateInstance(fmodEvent);
+            EventInstance soundInstance = RuntimeManager.CreateInstance(fmodEvents[species]);
             return soundInstance;
         }
     }
 
-    public void ReturnSound(EventInstance soundInstance)
+    public void ReturnSound(BirdSoundManager.SpeciesNames species, EventInstance soundInstance)
     {
-        soundPool.Enqueue(soundInstance);
+        soundPools[species].Enqueue(soundInstance);
     }
+
 
     private void OnDestroy()
     {
-        while (soundPool.Count > 0)
+        foreach (Queue<EventInstance> soundPool in soundPools.Values)
         {
-            EventInstance soundInstance = soundPool.Dequeue();
-            soundInstance.release();
+            while (soundPool.Count > 0)
+            {
+                EventInstance soundInstance = soundPool.Dequeue();
+                soundInstance.release();
+            }
         }
     }
+
 
 }

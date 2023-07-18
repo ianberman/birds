@@ -5,6 +5,8 @@ using FMOD.Studio;
 
 public class BirdSoundManager : MonoBehaviour
 {
+    public static BirdSoundManager Instance { get; private set; }
+
     [SerializeField]
     private List<Zone> zones; // List of zones, each with their possible bird species
 
