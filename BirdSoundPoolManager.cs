@@ -53,7 +53,7 @@ public class BirdSoundPoolManager : MonoBehaviour
         else
         {
             Debug.LogWarning("Sound pool for species " + species + " is empty. Waiting for a sound to be returned to the pool.");
-            return null; // Return null if the pool is empty
+            return new EventInstance(); // Return a default EventInstance if the pool is empty
         }
     }
 
