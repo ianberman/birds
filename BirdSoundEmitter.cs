@@ -138,7 +138,6 @@ public class BirdSoundEmitter : MonoBehaviour
                 birdSoundInstance.getPlaybackState(out state);
                 if (state == PLAYBACK_STATE.PLAYING)
                 {
-                    // If the instance is still playing, delay the start of the new sound
                     yield return new WaitForSeconds(UnityEngine.Random.Range(minDelay, maxDelay));
                     StartCoroutine(PlayBirdSound(species));
                     yield break;
@@ -146,25 +145,13 @@ public class BirdSoundEmitter : MonoBehaviour
                 else
                 {
                     birdSoundInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
-                    instanceToEmitter.Remove(birdSoundInstance.handle); // Remove from dictionary
-                    // Return the sound instance to the pool instead of releasing it
+                    instanceToEmitter.Remove(birdSoundInstance.handle);
                     BirdSoundPoolManager.Instance.ReturnSound(currentSpecies, birdSoundInstance);
-
                 }
             }
-
-            // Get a sound instance from the pool instead of creating a new one
-            birdSoundInstance = BirdSoundPoolManager.Instance.GetSound(currentSpecies);
+            birdSoundInstance = BirdSoundPoolManager.Instance.GetSound(currentSpecies, transform.position);
             instanceToEmitter[birdSoundInstance.handle] = this;
-
-            // Set 3D attributes
-            FMOD.ATTRIBUTES_3D attributes = FMODUnity.RuntimeUtils.To3DAttributes(gameObject.transform.position);
-            birdSoundInstance.set3DAttributes(attributes);
-
-            birdSoundInstance.setCallback(soundCompletedCallback, FMOD.Studio.EVENT_CALLBACK_TYPE.STOPPED);
             birdSoundInstance.start();
-
-            // Rest of the function...
 
             totalClipsPlayed++;
 

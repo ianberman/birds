@@ -48,7 +48,7 @@ public class BirdSoundPoolManager : MonoBehaviour
         }
     }
 
-    public EventInstance GetSound(BirdSoundManager.SpeciesNames species)
+    public EventInstance GetSound(BirdSoundManager.SpeciesNames species, Vector3 position)
     {
         if (soundPools.ContainsKey(species) && soundPools[species].Count > 0)
         {
@@ -57,6 +57,8 @@ public class BirdSoundPoolManager : MonoBehaviour
         else if (fmodEvents.ContainsKey(species))
         {
             EventInstance soundInstance = RuntimeManager.CreateInstance(fmodEvents[species]);
+            FMOD.ATTRIBUTES_3D attributes = FMODUnity.RuntimeUtils.To3DAttributes(position);
+            soundInstance.set3DAttributes(attributes);
             return soundInstance;
         }
         else
@@ -65,6 +67,7 @@ public class BirdSoundPoolManager : MonoBehaviour
             return new EventInstance();
         }
     }
+
 
 
     public void ReturnSound(BirdSoundManager.SpeciesNames species, EventInstance soundInstance)
