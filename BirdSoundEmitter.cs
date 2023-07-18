@@ -19,8 +19,6 @@ public class BirdSoundEmitter : MonoBehaviour
     private BirdSoundManager birdSoundManager;
     private List<BirdSoundManager.SpeciesNames> availableSpecies;
 
-    private string currentSpeciesName; // Store the species name as a string
-
     [SerializeField]
     private float minDelay = 0f; // Minimum delay between sound clips
     [SerializeField]
@@ -132,9 +130,6 @@ public class BirdSoundEmitter : MonoBehaviour
     // Play a bird sound for the given species
     private IEnumerator PlayBirdSound(BirdSoundManager.SpeciesNames species)
     {
-        currentSpeciesName = species.ToString(); // Store the species name when a sound is played
-        birdSoundInstance = BirdSoundPoolManager.Instance.GetSound(currentSpeciesName);
-
         if (birdSoundManager.TryGetFMODEventForSpecies(species, out EventReference fmodEvent))
         {
             if (birdSoundInstance.isValid())
@@ -153,18 +148,12 @@ public class BirdSoundEmitter : MonoBehaviour
                     birdSoundInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
                     instanceToEmitter.Remove(birdSoundInstance.handle); // Remove from dictionary
                     // Return the sound instance to the pool instead of releasing it
-                    BirdSoundPoolManager.Instance.ReturnSound(species.ToString(), birdSoundInstance);
-
+                    BirdSoundPoolManager.Instance.ReturnSound(birdSoundInstance);
                 }
             }
 
             // Get a sound instance from the pool instead of creating a new one
-            birdSoundInstance = BirdSoundPoolManager.Instance.GetSound(species.ToString());
-            if (!birdSoundInstance.isValid())
-            {
-                Debug.LogWarning("Could not get sound instance for species: " + species);
-                yield break;
-            }
+            birdSoundInstance = BirdSoundPoolManager.Instance.GetSound();
             instanceToEmitter[birdSoundInstance.handle] = this;
 
             // Set 3D attributes
@@ -273,7 +262,8 @@ public class BirdSoundEmitter : MonoBehaviour
             if (instanceToEmitter.TryGetValue(instancePtr, out BirdSoundEmitter emitter))
             {
                 emitter.isEligibleToPlay = true;
-                BirdSoundPoolManager.Instance.ReturnSound(emitter.currentSpeciesName, emitter.birdSoundInstance); // Use the stored species name
+                // Return the sound instance to the pool
+                BirdSoundPoolManager.Instance.ReturnSound(emitter.birdSoundInstance);
             }
         }
         return FMOD.RESULT.OK;
