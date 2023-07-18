@@ -149,10 +149,15 @@ public class BirdSoundEmitter : MonoBehaviour
                     BirdSoundPoolManager.Instance.ReturnSound(currentSpecies, birdSoundInstance);
                 }
             }
+
             birdSoundInstance = BirdSoundPoolManager.Instance.GetSound(currentSpecies, transform.position);
             instanceToEmitter[birdSoundInstance.handle] = this;
-            birdSoundInstance.start();
 
+            // Update the 3D attributes of the EventInstance to reflect the current position of the sound emitter
+            FMOD.ATTRIBUTES_3D attributes = FMODUnity.RuntimeUtils.To3DAttributes(transform.position);
+            birdSoundInstance.set3DAttributes(attributes);
+
+            birdSoundInstance.start();
             totalClipsPlayed++;
 
             if (totalClipsPlayed >= totalClipsForSpecies)
