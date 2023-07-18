@@ -264,10 +264,11 @@ public class BirdSoundEmitter : MonoBehaviour
             {
                 emitter.isEligibleToPlay = true;
                 // Return the sound instance to the pool
-                BirdSoundPoolManager.Instance.ReturnSound(currentSpecies, birdSoundInstance);
+                BirdSoundPoolManager.Instance.ReturnSound(emitter.currentSpecies, emitter.birdSoundInstance);
             }
         }
         return FMOD.RESULT.OK;
     }
+
 
 }
