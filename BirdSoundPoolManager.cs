@@ -69,14 +69,11 @@ public class BirdSoundPoolManager : MonoBehaviour
         return soundInstance;
     }
 
-
-
-
     public void ReturnSound(BirdSoundManager.SpeciesNames species, EventInstance soundInstance)
     {
+        soundInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
         soundPools[species].Enqueue(soundInstance);
     }
-
 
     private void OnDestroy()
     {
