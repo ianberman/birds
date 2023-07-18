@@ -50,23 +50,25 @@ public class BirdSoundPoolManager : MonoBehaviour
 
     public EventInstance GetSound(BirdSoundManager.SpeciesNames species, Vector3 position)
     {
+        EventInstance soundInstance;
         if (soundPools.ContainsKey(species) && soundPools[species].Count > 0)
         {
-            return soundPools[species].Dequeue();
+            soundInstance = soundPools[species].Dequeue();
         }
         else if (fmodEvents.ContainsKey(species))
         {
-            EventInstance soundInstance = RuntimeManager.CreateInstance(fmodEvents[species]);
-            FMOD.ATTRIBUTES_3D attributes = FMODUnity.RuntimeUtils.To3DAttributes(position);
-            soundInstance.set3DAttributes(attributes);
-            return soundInstance;
+            soundInstance = RuntimeManager.CreateInstance(fmodEvents[species]);
         }
         else
         {
             Debug.LogError("No sound pool or FMOD event found for species: " + species);
             return new EventInstance();
         }
+        FMOD.ATTRIBUTES_3D attributes = FMODUnity.RuntimeUtils.To3DAttributes(position);
+        soundInstance.set3DAttributes(attributes);
+        return soundInstance;
     }
+
 
 
 
